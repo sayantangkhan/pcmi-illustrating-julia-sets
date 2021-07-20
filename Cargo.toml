@@ -8,6 +8,7 @@ edition = "2018"
 [dependencies]
 png = { git = "https://github.com/sayantangkhan/image-png" }
 rayon = "1.5"
+clap = "3.0.0-beta.2"
 
 [dependencies.num-complex]
 version = "0.4"
