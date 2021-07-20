@@ -3,6 +3,8 @@ use png::{self, Encoder, EncodingError};
 use rayon::prelude::*;
 use std::io::Write;
 
+pub mod tc;
+
 pub fn point_escapes(
     mut z: Complex64,
     c: Complex64,
@@ -56,13 +58,44 @@ pub fn plot_basin_of_infinity<W: Write>(
                     // pixel[2] = (255.0 / color_scale(z, 0)) as u8;
                 }
                 Some(n) => {
-                    pixel[0] = (255.0 - (255.0 / (1.0 + 0.2 * (n as f64)))) as u8;
+                    // pixel[0] = (255.0 - (255.0 / (1.0 + 0.2 * (n as f64)))) as u8;
                     // pixel[0] = (255.0 - 255.0 / color_scale(z, n)) as u8;
-                    pixel[1] = (127.0 - (127.0 / (1.0 + 0.2 * (n as f64)))) as u8;
+                    pixel[0] = (127.0
+                        - 127.0 * 1.0 * approximate_potential_in_basin_of_infinity(z, c, 1e-6))
+                        as u8;
+                    // pixel[1] = (127.0 - (127.0 / (1.0 + 0.2 * (n as f64)))) as u8;
                     // pixel[1] = (127.0 - 127.0 / color_scale(z, n)) as u8;
+                    pixel[1] = (127.0
+                        - 127.0 * approximate_potential_in_basin_of_infinity(z, c, 1e-6))
+                        as u8;
                 }
             }
         });
 
     writer.write_image_data(&image_buffer)
 }
+
+fn approximate_potential_in_basin_of_infinity(
+    mut z: Complex64,
+    c: Complex64,
+    difference_threshold: f64,
+) -> f64 {
+    let mut den: f64 = 2.0;
+    let mut current_value = z.norm_sqr().log10() / den;
+    while ((z * z + c).norm_sqr().log10() / (2.0 * den) - current_value).abs()
+        > difference_threshold
+    {
+        z = z * z + c;
+        den *= 2.0;
+        current_value = z.norm_sqr().log10() / den;
+    }
+    current_value
+}
+
+// fn approximate_potential_in_compact_basin(
+//     mut z: Complex64,
+//     c: Complex64,
+//     difference_threshold: f64
+// ) -> f64 {
+//     let a = c.
+// }
